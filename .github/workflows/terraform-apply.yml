@@ -1,0 +1,46 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  TF_CLOUD_ORGANIZATION: "<your-hcp-terraform-organization>"
+  TF_WORKSPACE: "vyomanant-tfc-cicd-demo"
+  CONFIG_DIRECTORY: "./"
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload Terraform configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: upload-config
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+          token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Create HCP Terraform run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: create-run
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.upload-config.outputs.configuration_version_id }}
+          token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Apply HCP Terraform run
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        with:
+          run: ${{ steps.create-run.outputs.run_id }}
+          token: ${{ secrets.TF_API_TOKEN }}

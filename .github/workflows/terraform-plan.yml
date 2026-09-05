@@ -1,0 +1,66 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+
+env:
+  TF_CLOUD_ORGANIZATION: "vyomanant-terraform-cicd"
+  TF_WORKSPACE: "vyomanant-tfc-cicd-demo"
+  CONFIG_DIRECTORY: "./"
+
+jobs:
+  terraform-plan:
+    name: Terraform Speculative Plan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload Terraform configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: upload-config
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          directory: ${{ env.CONFIG_DIRECTORY }}
+          speculative: true
+          token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Create speculative plan
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: create-plan
+        with:
+          workspace: ${{ env.TF_WORKSPACE }}
+          configuration_version: ${{ steps.upload-config.outputs.configuration_version_id }}
+          plan_only: true
+          token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Retrieve plan output
+        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
+        id: plan-output
+        with:
+          plan: ${{ steps.create-plan.outputs.plan_id }}
+          token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Add plan link to pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## Terraform Speculative Plan
+
+            HCP Terraform has created a speculative plan for this pull request.
+
+            Review the HCP Terraform run before merging.
+
+            Run URL: ${{ steps.create-plan.outputs.run_link }}`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
