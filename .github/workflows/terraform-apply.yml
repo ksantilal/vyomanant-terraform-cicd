@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  TF_CLOUD_ORGANIZATION: "<your-hcp-terraform-organization>"
+  TF_CLOUD_ORGANIZATION: "vyomanant-terraform-cicd"
   TF_WORKSPACE: "vyomanant-tfc-cicd-demo"
   CONFIG_DIRECTORY: "./"
 
