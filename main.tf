@@ -22,7 +22,7 @@ resource "aws_s3_bucket" "lab_bucket" {
   tags = {
     Name        = local.bucket_name
     Project     = var.project_name
-    Environment = var.environment
+    Environment = "dev-test"
     ManagedBy   = "Terraform"
     Academy     = "Vyomanant Academy"
   }
