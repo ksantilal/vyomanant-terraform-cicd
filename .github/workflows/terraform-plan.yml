@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  TF_CLOUD_ORGANIZATION: "vyomanant-terraform-cicd"
+  TF_CLOUD_ORGANIZATION: "vyomanant-tfc-cicd-demo"
   TF_WORKSPACE: "vyomanant-tfc-cicd-demo"
   CONFIG_DIRECTORY: "./"
 
